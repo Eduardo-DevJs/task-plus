@@ -5,9 +5,16 @@ import { getSession } from "next-auth/react";
 import Textarea from "@/src/components/TextArea";
 import { FiShare2 } from "react-icons/fi";
 import { FaTrash } from "react-icons/fa";
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { db } from "@/src/services/firebaseConnection";
-import { addDoc, collection } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  query,
+  orderBy,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
 
 interface HomeProps {
   user: {
@@ -15,9 +22,48 @@ interface HomeProps {
   };
 }
 
+interface TaskProps {
+  id: string;
+  created: Date;
+  public: boolean;
+  tarefa: string;
+  user: string;
+}
+
 export default function Dashboard({ user }: HomeProps) {
   const [input, setInput] = useState("");
   const [publickTask, setPublicTask] = useState(false);
+  const [tasks, setTasks] = useState<TaskProps[]>([]);
+
+  useEffect(() => {
+    async function loadTasks() {
+      const tasksRef = collection(db, "tarefas");
+      const queryTask = query(
+        tasksRef,
+        orderBy("created", "desc"),
+        where("user", "==", user?.email)
+      );
+
+      onSnapshot(queryTask, (snapshot) => {
+        let listTasks = [] as TaskProps[];
+
+        snapshot.forEach((doc) => {
+          listTasks.push({
+            id: doc.id,
+            created: doc.data().created,
+            public: doc.data().public,
+            tarefa: doc.data().tarefa,
+            user: doc.data().user,
+          });
+
+        });
+
+        setTasks(listTasks);
+      });
+    }
+
+    loadTasks();
+  }, [user?.email]);
 
   function handleChangePublic(event: ChangeEvent<HTMLInputElement>) {
     setPublicTask(event.target.checked);
@@ -36,8 +82,8 @@ export default function Dashboard({ user }: HomeProps) {
         public: publickTask,
       });
 
-      setInput("")
-      setPublicTask(false)
+      setInput("");
+      setPublicTask(false);
     } catch (error) {
       console.log(`Erro ao cadastrar no banco: ${error}`);
     }
@@ -79,28 +125,28 @@ export default function Dashboard({ user }: HomeProps) {
 
         <section className={styles.taskContainer}>
           <h1>Minhas tarefas</h1>
-          <article className={styles.task}>
-            <div className={styles.tagContainer}>
-              <label className={styles.tag} htmlFor="">
-                PÚBLICO
-              </label>
-              <button className={styles.shareButton}>
-                <FiShare2 size={22} color="#3183aff" />
-              </button>
-            </div>
+          
+          {tasks.map((task) => (
+            <article key={task.id} className={styles.task}>
+              {task.public && (
+                <div className={styles.tagContainer}>
+                  <label className={styles.tag}>
+                    PÚBLICO
+                  </label>
+                  <button className={styles.shareButton}>
+                    <FiShare2 size={22} color="#3183af" />
+                  </button>
+                </div>
+              )}
 
-            <div className={styles.taskContent}>
-              <p>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Laboriosam esse velit numquam nostrum sint, nam ipsam eligendi
-                odit impedit provident facere voluptate. Quas nam assumenda nisi
-                quidem maxime cumque tempore!
-              </p>
-              <button className={styles.trashButton}>
-                <FaTrash size={24} color="#ea3140" />
-              </button>
-            </div>
-          </article>
+              <div className={styles.taskContent}>
+                <p>{task.tarefa}</p>
+                <button className={styles.trashButton}>
+                  <FaTrash size={24} color="#ea3140" />
+                </button>
+              </div>
+            </article>
+          ))}
         </section>
       </main>
     </div>
