@@ -14,7 +14,10 @@ import {
   orderBy,
   where,
   onSnapshot,
+  doc,
+  deleteDoc,
 } from "firebase/firestore";
+import Link from "next/link";
 
 interface HomeProps {
   user: {
@@ -55,7 +58,6 @@ export default function Dashboard({ user }: HomeProps) {
             tarefa: doc.data().tarefa,
             user: doc.data().user,
           });
-
         });
 
         setTasks(listTasks);
@@ -87,6 +89,24 @@ export default function Dashboard({ user }: HomeProps) {
     } catch (error) {
       console.log(`Erro ao cadastrar no banco: ${error}`);
     }
+  }
+
+  async function handleShare(id: string) {
+    await navigator.clipboard.writeText(
+      `${process.env.NEXT_PUBLIC_URL}/task/${id}`
+    )
+
+    alert("URL copiada com sucesso")
+  }
+
+  async function handleDeleteTask (id: string)  {
+    const docRef = doc(db, "tarefas", id)
+    await deleteDoc(docRef)
+    .then(() => {
+      console.log("Apagado com sucesso")
+    }).catch(err => {
+      console.log(`Erro ao deletar tarefa: ${err}`)
+    })
   }
 
   return (
@@ -125,23 +145,27 @@ export default function Dashboard({ user }: HomeProps) {
 
         <section className={styles.taskContainer}>
           <h1>Minhas tarefas</h1>
-          
+
           {tasks.map((task) => (
             <article key={task.id} className={styles.task}>
               {task.public && (
                 <div className={styles.tagContainer}>
-                  <label className={styles.tag}>
-                    PÚBLICO
-                  </label>
-                  <button className={styles.shareButton}>
+                  <label className={styles.tag}>PÚBLICO</label>
+                  <button className={styles.shareButton} onClick={() => handleShare(task.id)}>
                     <FiShare2 size={22} color="#3183af" />
                   </button>
                 </div>
               )}
 
               <div className={styles.taskContent}>
-                <p>{task.tarefa}</p>
-                <button className={styles.trashButton}>
+                {task.public ? (
+                  <Link href={`/task/${task.id}`}>
+                    <p>{task.tarefa}</p>
+                  </Link>
+                ) : (
+                  <p>{task.tarefa}</p>
+                ) }
+                <button className={styles.trashButton} onClick={() => handleDeleteTask(task.id)}>
                   <FaTrash size={24} color="#ea3140" />
                 </button>
               </div>
