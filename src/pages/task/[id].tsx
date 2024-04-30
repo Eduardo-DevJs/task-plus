@@ -14,6 +14,7 @@ import { db } from "@/src/services/firebaseConnection";
 import Textarea from "@/src/components/TextArea";
 import { useSession } from "next-auth/react";
 import { ChangeEvent, FormEvent, useState } from "react";
+import { FaTrash } from "react-icons/fa";
 
 interface TaskProps {
   item: {
@@ -27,6 +28,7 @@ interface TaskProps {
 }
 
 interface CommentsProps {
+  user: string;
   id: string;
   comment: string;
   taskId: string;
@@ -53,6 +55,16 @@ export default function TaskDetail({ item, allComments }: TaskProps) {
         name: session?.user?.name,
         taskId: item?.taskId,
       });
+
+      const data = {
+        id: docRef.id,
+        comment: input,
+        user: session.user.email,
+        name: session.user.name,
+        taskId: item?.taskId,
+      };
+
+      setComments((oldItems) => [...oldItems, data]);
 
       setInput("");
     } catch (error) {
@@ -95,6 +107,14 @@ export default function TaskDetail({ item, allComments }: TaskProps) {
 
         {comments.map((item) => (
           <article key={item.id} className={styles.comment}>
+            <div className={styles.headerComment}>
+              <label className={styles.commentsLabel}>{item.name}</label>
+              {item.user === session?.user?.email && (
+                <button className={styles.buttonTrash}>
+                  <FaTrash size={18} color="#ea3140" />
+                </button>
+              )}
+            </div>
             <p>{item.comment}</p>
           </article>
         ))}
@@ -120,9 +140,9 @@ export const getServerSideProps: GetServerSideProps = async ({ params }) => {
       comment: item.data().comentario,
       name: item.data().name,
       taskId: item.data().taskId,
+      user: item.data().user,
     });
   });
-
 
   if (snapShot.data() === undefined) {
     return {
