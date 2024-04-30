@@ -1,9 +1,11 @@
 import Head from "next/head";
 import styles from "./style.module.css";
 import { GetServerSideProps } from "next";
-import { doc, getDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDoc } from "firebase/firestore";
 import { db } from "@/src/services/firebaseConnection";
 import Textarea from "@/src/components/TextArea";
+import { useSession } from "next-auth/react";
+import { ChangeEvent, FormEvent, useState } from "react";
 
 interface TaskProps {
   item: {
@@ -16,6 +18,33 @@ interface TaskProps {
 }
 
 export default function TaskDetail({ item }: TaskProps) {
+  const { data: session } = useSession();
+  const [input, setInput] = useState("");
+
+  async function handleComment(event: FormEvent) {
+    event.preventDefault();
+
+    if (!input) return;
+
+    if (!session?.user?.email || !session?.user?.name) return;
+
+    try {
+      const docRef = await addDoc(collection(db, "comentarios"), {
+        comentario: input,
+        created: new Date(),
+        user: session?.user?.email,
+        name: session?.user?.name,
+        taskId: item?.taskId,
+      });
+
+      console.log(docRef)
+
+      setInput("")
+    } catch (error) {
+      console.log(`Erro ao comentar: ${error}`);
+    }
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -31,9 +60,17 @@ export default function TaskDetail({ item }: TaskProps) {
 
       <section className={styles.commentsContainer}>
         <h2>Deixar comentário</h2>
-        <form>
-          <Textarea placeholder="Digite seu comentário..." />
-          <button className={styles.button}>Enviar comentário</button>
+        <form onSubmit={handleComment}>
+          <Textarea
+            value={input}
+            onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+              setInput(event.target.value)
+            }
+            placeholder="Digite seu comentário..."
+          />
+          <button disabled={!session?.user} className={styles.button}>
+            Enviar comentário
+          </button>
         </form>
       </section>
     </div>
