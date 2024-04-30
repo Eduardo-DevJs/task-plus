@@ -37,6 +37,9 @@
   color: #fff;
   border: 1.5px solid #fff;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 20px;
   transition: all 0.2s;
 }
 

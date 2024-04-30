@@ -1,6 +1,8 @@
 import Link from "next/link";
 import styles from "./styles.module.css";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { SiGmail } from "react-icons/si";
+
 
 export default function Header() {
   const { data: session, status } = useSession();
@@ -31,7 +33,8 @@ export default function Header() {
             className={styles.loginButton}
             onClick={() => signIn("google")}
           >
-            Acessar
+            Acessar 
+            <SiGmail size={18} color="#e54"/>
           </button>
         )}
       </section>
