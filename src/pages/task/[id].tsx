@@ -4,6 +4,7 @@ import { GetServerSideProps } from "next";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -72,6 +73,18 @@ export default function TaskDetail({ item, allComments }: TaskProps) {
     }
   }
 
+  async function handleDelete(id: string) {
+    try {
+      const docRef = doc(db, "comentarios", id);
+      await deleteDoc(docRef);
+      const deleteComment = comments.filter((item) => item.id !== id);
+
+      setComments(deleteComment);
+    } catch (error) {
+      console.log(`Erro ao deletar ${error}`);
+    }
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -110,7 +123,10 @@ export default function TaskDetail({ item, allComments }: TaskProps) {
             <div className={styles.headerComment}>
               <label className={styles.commentsLabel}>{item.name}</label>
               {item.user === session?.user?.email && (
-                <button className={styles.buttonTrash}>
+                <button
+                  className={styles.buttonTrash}
+                  onClick={() => handleDelete(item.id)}
+                >
                   <FaTrash size={18} color="#ea3140" />
                 </button>
               )}
