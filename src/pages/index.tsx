@@ -2,6 +2,7 @@ import Head from "next/head";
 import styles from "@/styles/home.module.css";
 import Image from "next/image";
 import heroLogo from "@/public/assets/hero.png";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
 
 export default function Home() {
   return (
@@ -35,6 +36,40 @@ export default function Home() {
           </section>
         </div>
       </main>
+      <footer
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          marginTop: "2rem",
+        }}
+      >
+        <p style={{ color: "#fff", fontSize: "1.5rem" }}>
+          Feito por Dudu Oliveira | 2024
+        </p>
+        <ul
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "15px",
+            marginTop: "1rem",
+          }}
+        >
+          <li>
+            <a href="https://github.com/Eduardo-DevJs" target="_blank">
+              <FaGithub size={40} color="#fff" />
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://www.linkedin.com/in/eduardo-oliveira-liria-849467246/"
+              target="_blank"
+            >
+              <FaLinkedin size={40} color="#fff" />
+            </a>
+          </li>
+        </ul>
+      </footer>
     </div>
   );
 }
