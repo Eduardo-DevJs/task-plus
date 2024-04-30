@@ -1,5 +1,5 @@
 import Head from "next/head";
-import styles from "/styles/home.module.css";
+import styles from "@/styles/home.module.css";
 import Image from "next/image";
 import heroLogo from "@/public/assets/hero.png";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
